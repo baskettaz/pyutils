@@ -11,7 +11,14 @@ from typing import (
 
 from .generics import coroutine
 
-__all__ = ["grep", "follow", "printer", "func_filter", "filter_on_field", "broadcast"]
+__all__ = [
+    "grep",
+    "follow",
+    "printer",
+    "func_filter",
+    "filter_on_field",
+    "broadcast"
+]
 
 
 @coroutine
