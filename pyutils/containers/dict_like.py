@@ -1,13 +1,16 @@
 from __future__ import annotations
+
 import bisect
 import re
 from collections import OrderedDict
+from collections.abc import Callable, Iterable
 from copy import deepcopy
-from typing import Any
-from typing import Callable
-from typing import Self
-from typing import Hashable
-from typing import Iterable
+from typing import Any, Self, TypeVar
+
+from _typeshed import SupportsRichComparison
+
+
+K = TypeVar("K", bound=SupportsRichComparison)
 
 
 class DefaultDictMixin(dict):
@@ -15,7 +18,7 @@ class DefaultDictMixin(dict):
 
     # Source: http://stackoverflow.com/a/6190500/562769
 
-    def __init__(self, default_factory: Callable | None = None, /, *a, **kw):
+    def __init__(self, *a, default_factory: Callable | None = None, **kw):
         if default_factory is not None and not callable(default_factory):
             raise TypeError("first argument must be callable")
         super().__init__(*a, **kw)
@@ -62,7 +65,7 @@ class SingleEntryDict(dict):
 
     # Source:
     # https://stackoverflow.com/questions/73143580/add-element-to-dict-but-dont-overwrite-value-when-key-exists
-    def __setitem__(self, key: Hashable, value: Any) -> None:
+    def __setitem__(self, key: K, value: Any) -> None:
         if key not in self:
             super().__setitem__(key, value)
         else:
@@ -78,13 +81,13 @@ class SafeEntryDict(dict):
 
     pattern = re.compile(r"(?P<base>.*)\((?P<increment>\d+)\)")
 
-    def __init__(self, iterable: Iterable[tuple[Hashable, Any]] | None = None):
+    def __init__(self, iterable: Iterable[tuple[K, Any]] | None = None):
         super().__init__()
         if iterable:
             for k, v in iterable:
                 self[k] = v  # use our overridden __setitem__
 
-    def __setitem__(self, key: Hashable, value: Any) -> None:
+    def __setitem__(self, key: K, value: Any) -> None:
         if key not in self:
             super().__setitem__(key, value)
         elif not isinstance(key, str):
@@ -97,9 +100,7 @@ class SafeEntryDict(dict):
                 increment = 1
 
             results = [
-                int(values.group("increment"))
-                for item in self
-                if (values := self.pattern.match(item)) and base in item
+                int(values.group("increment")) for item in self if (values := self.pattern.match(item)) and base in item
             ]
 
             super().__setitem__(
@@ -114,7 +115,7 @@ class SingleEntryOrderedDict(OrderedDict):
     but for an ordered dictionary
     """
 
-    def __setitem__(self, key: Hashable, value: Any) -> None:
+    def __setitem__(self, key: K, value: Any) -> None:
         if key not in self:
             super().__setitem__(key, value)
         else:
@@ -129,7 +130,7 @@ class SortedDict:
     This applies also to the `update()` method.
     """
 
-    def __init__(self, dictionary: "dict | SortedDict" = dict()) -> None:
+    def __init__(self, dictionary: dict | SortedDict = dict()) -> None:
         self.__keys: list = []
         self.__dict: dict = dict()
         if dictionary is not None:
@@ -142,7 +143,7 @@ class SortedDict:
 
     def update(
         self,
-        dictionary: "dict | SortedDict | None" = None,
+        dictionary: dict | SortedDict | None = None,
         **kwargs,
     ) -> None:
         "Updates this dictionary with another dictionary and/or key-value pairs as a keyword"
@@ -188,7 +189,7 @@ class SortedDict:
         """
         self.__dict[self.__keys[index]] = value
 
-    def copy(self) -> Self:
+    def copy(self) -> SortedDict:
         "Shallow copy of the `SortedDict`"
         dictionary = SortedDict()
         dictionary.__keys = self.__keys[:]
@@ -201,17 +202,17 @@ class SortedDict:
         self.__keys = []
         self.__dict = {}
 
-    def get(self, key: Hashable, value: Any = None) -> Any:
+    def get(self, key: K, value: Any = None) -> Any:
         "Returns the value of the `key` or the default `value` if the key does not exist"
         return self.__dict.get(key, value)
 
-    def setdefault(self, key: Hashable, value: Any) -> dict:
+    def setdefault(self, key: K, value: Any) -> dict:
         "Sets a default value for a specific key"
         if key not in self.__dict:
             bisect.insort_left(self.__keys, key)
         return self.__dict.setdefault(key, value)
 
-    def pop(self, key: Hashable, value: Any = None) -> Any:
+    def pop(self, key: K, value: Any = None) -> Any:
         "Removes and returns (pops) the value for a concrete key , otherwise returns the default value"
         if key not in self.__dict:
             return value
@@ -257,11 +258,11 @@ class SortedDict:
         for key in self.__keys:
             yield key, self.__dict[key]
 
-    def has_key(self, key: Hashable) -> bool:
+    def has_key(self, key: K) -> bool:
         "Returns True if the key is in the dictionary; False otherwise"
         return key in self.__dict
 
-    def __contains__(self, key: Hashable) -> bool:
+    def __contains__(self, key: K) -> bool:
         "Returns True if the key is in the dictionary; False otherwise"
         return key in self.__dict
 
@@ -269,17 +270,17 @@ class SortedDict:
         "Returns the number of elements in the dictionary"
         return len(self.__dict)
 
-    def __delitem__(self, key: Hashable) -> None:
+    def __delitem__(self, key: K) -> None:
         "Deletes the item with the specified key from the dictionary"
         del self.__dict[key]
         i = bisect.bisect_left(self.__keys, key)
         del self.__keys[i]
 
-    def __getitem__(self, key: Hashable) -> Any:
+    def __getitem__(self, key: K) -> Any:
         "Returns the value of the element with the specified key"
         return self.__dict[key]
 
-    def __setitem__(self, key: Hashable, value: Any) -> None:
+    def __setitem__(self, key: K, value: Any) -> None:
         """
         Sets the value of the specified key to the given value if the key is in the dictionary;
         otherwise, adds the key with the value.
@@ -301,5 +302,5 @@ class SortedDict:
         """
         pieces = []
         for key in self.__keys:
-            pieces.append("{!r}: {!r}".format(key, self.__dict[key]))
+            pieces.append(f"{key!r}: {self.__dict[key]!r}")
         return "SortedDict({{{0}}})".format(", ".join(pieces))

@@ -5,20 +5,14 @@ from collections.abc import (
 from typing import (
     Any,
     Generic,
-    Self,
     TypeVar,
 )
 
+
+from pyutils.functions.for_iterables import flatten
+
+
 T = TypeVar("T")
-
-
-def flatten(items, ignore_types=(str, bytes)):
-    # Python Cookbook, David Beazley, 3rd Edition, Recipe 4.14
-    for x in items:
-        if isinstance(x, Iterable) and not isinstance(x, ignore_types):
-            yield from flatten(x)
-        else:
-            yield x
 
 
 class OrderedSet(Generic[T]):
@@ -66,24 +60,26 @@ class OrderedSet(Generic[T]):
         keys = list(self._data)
         return keys[index]
 
-    def __eq__(self, other: Self) -> bool:
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, OrderedSet):
+            return False
         return self._data == other._data
 
-    def __or__(self, other: Iterable[T]) -> Self:
+    def __or__(self, other: Iterable[T]) -> "OrderedSet":
         """Union: self | other"""
         new_ordered_set = OrderedSet(self._data.keys())
         new_ordered_set.update(other)
         return new_ordered_set
 
-    def __and__(self, other: Iterable[T]) -> Self:
+    def __and__(self, other: Iterable[T]) -> "OrderedSet":
         """Intersection: self & other"""
         return OrderedSet(x for x in self if x in other)
 
-    def __sub__(self, other: Iterable[T]) -> Self:
+    def __sub__(self, other: Iterable[T]) -> "OrderedSet":
         """Difference: self - other"""
         return OrderedSet(x for x in self if x not in other)
 
-    def __xor__(self, other: Iterable[T]) -> Self:
+    def __xor__(self, other: Iterable[T]) -> "OrderedSet":
         """Symmetric difference: self ^ other"""
         result = []
         seen = set()
@@ -101,19 +97,19 @@ class OrderedSet(Generic[T]):
 
         return OrderedSet(result)
 
-    def __ior__(self, other: Iterable[T]) -> Self:
+    def __ior__(self, other: Iterable[T]) -> "OrderedSet":
         self.update(other)
         return self
 
-    def __iand__(self, other: Iterable[T]) -> Self:
+    def __iand__(self, other: Iterable[T]) -> "OrderedSet":
         self._data = {x: None for x in self if x in other}
         return self
 
-    def __isub__(self, other: Iterable[T]) -> Self:
+    def __isub__(self, other: Iterable[T]) -> "OrderedSet":
         self._data = {x: None for x in self if x not in other}
         return self
 
-    def __ixor__(self, other: Iterable[T]) -> Self:
+    def __ixor__(self, other: Iterable[T]) -> "OrderedSet":
         result = self ^ other
         self._data = {x: None for x in result}
         return self

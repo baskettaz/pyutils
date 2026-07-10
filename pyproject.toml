@@ -37,6 +37,7 @@ lint = [
 test = [
     "coverage",
     "pytest",
+    "pytest-sugar>=1.1.1",
 ]
 typecheck = [
     "ty",

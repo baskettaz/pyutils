@@ -2,7 +2,7 @@ from collections.abc import Generator
 
 import pytest
 
-from pyutils.containers.ordered_set import OrderedSet
+from pyutils.containers.set_like import OrderedSet
 
 
 @pytest.fixture(scope="function")

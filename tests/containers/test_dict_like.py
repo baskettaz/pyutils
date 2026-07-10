@@ -3,12 +3,14 @@ from copy import deepcopy
 
 import pytest
 
-from pyutils.containers.dict_like import DefaultOrderedDict
-from pyutils.containers.dict_like import DefaultSingleEntryDict
-from pyutils.containers.dict_like import SafeEntryDict
-from pyutils.containers.dict_like import SingleEntryDict
-from pyutils.containers.dict_like import SingleEntryOrderedDict
-from pyutils.containers.dict_like import SortedDict
+from pyutils.containers.dict_like import (
+    DefaultOrderedDict,
+    DefaultSingleEntryDict,
+    SafeEntryDict,
+    SingleEntryDict,
+    SingleEntryOrderedDict,
+    SortedDict,
+)
 
 
 def test_default_single_entry_dict_empty_list():

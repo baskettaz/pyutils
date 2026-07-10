@@ -1,11 +1,9 @@
 from __future__ import annotations
 
 from collections import deque
+from collections.abc import Iterable
 from numbers import Number
-from typing import Any
-from typing import Iterable
-from typing import overload
-from typing import SupportsIndex
+from typing import Any, SupportsIndex, overload
 
 
 class GenericCustomList(list):
@@ -18,13 +16,13 @@ class GenericCustomList(list):
     @overload
     def __setitem__(self, index: slice, value: Iterable[Any]) -> None: ...
 
-    def __setitem__(self, index: SupportsIndex | slice, item: Any) -> None:
+    def __setitem__(self, index: SupportsIndex | slice, value: Any) -> None:
         # force evaluation of the iterable
-        if isinstance(item, Iterable) and not isinstance(item, (str, bytes, Number)):
-            transformed = [self._validate_item(element) for element in item]
+        if isinstance(value, Iterable) and not isinstance(value, (str, bytes, Number)):
+            transformed = [self._validate_item(element) for element in value]
             super().__setitem__(index, transformed)
         else:
-            super().__setitem__(index, self._validate_item(item))
+            super().__setitem__(index, self._validate_item(value))
 
     def insert(self, index: SupportsIndex, item: Any) -> None:
         super().insert(index, self._validate_item(item))
