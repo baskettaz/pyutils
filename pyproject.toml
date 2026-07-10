@@ -30,6 +30,7 @@ dev = [
     { include-group = "lint" },
     { include-group = "test" },
     { include-group = "typecheck" },
+    { include-group = "tools" },
 ]
 lint = [
     "ruff",
@@ -45,6 +46,9 @@ typecheck = [
 docs = [
     "zensical",
     "mkdocstrings-python",
+]
+tools = [
+    "pre-commit>=4.6.0",
 ]
 
 [project.urls]

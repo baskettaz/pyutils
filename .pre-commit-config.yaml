@@ -1,0 +1,86 @@
+repos:
+  # Simple out-of-the-box standard pre-commit hooks
+  # ===============================================
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0
+    hooks:
+      - id: trailing-whitespace         # remove trailing whitespace
+      - id: check-ast                   # check Python lwe_files for AST errors
+      - id: end-of-file-fixer           # makes sure lwe_files end in a newline and only a newline
+      - id: check-docstring-first       # ensure docstrings are first in Python lwe_files
+      - id: check-illegal-windows-names # check for illegal Windows filenames
+      - id: check-toml                  # check for valid TOML lwe_files
+      - id: mixed-line-ending           # check for mixed line endings
+      - id: name-tests-test             # ensure test lwe_files are named correctly
+        args: [--pytest-test-first]     # starting with test_.*.py
+
+  # Considers large lwe_files, but only in the project, not the tests
+  # =============================================================
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: check-added-large-files   # prevent giant lwe_files from being added
+        args: [--maxkb=2500]          # limit to 2500 KB (2.5 MB)
+        exclude: tests/.*             # exclude test lwe_files from this check
+
+  # Tools for automatically reordering python imports
+  # =================================================
+  - repo: https://github.com/asottile/reorder-python-imports
+    rev: v3.16.0
+    hooks:
+    -   id: reorder-python-imports
+
+  # Ruff repo for out-of-the-box Python linting and formatting
+  # ==========================================================
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.14.9
+    hooks:
+      - id: ruff-check                 # run ruff to check for code style issues
+        args: [--fix]                  # automatically fix issues where possible
+      - id: ruff-format                # run ruff to format code
+
+
+  # Ref for adds a trailing comma to calls and literals
+  # ===================================================
+  - repo: https://github.com/asottile/add-trailing-comma
+    rev: v4.0.0
+    hooks:
+      -   id: add-trailing-comma
+
+  # Repo for detecting and preventing secrets in code
+  # =================================================
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: v8.30.0
+    hooks:
+      - id: gitleaks
+
+  # Mirror of mypy for pre-commit
+  # =============================
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v1.19.1
+    hooks:
+    - id: mypy
+
+  # Tool for the automatically upgrade of the python newest syntax
+  # ==============================================================
+  - repo: https://github.com/asottile/pyupgrade
+    rev: v3.21.2
+    hooks:
+      - id: pyupgrade
+
+
+  # Tool for removing unused imports or expand the star imports
+  # ===========================================================
+  - repo: https://github.com/PyCQA/autoflake
+    rev: v2.3.1
+    hooks:
+      - id: autoflake
+        args: [--expand-star-imports]
+
+  # Monitor code complexity
+  # =======================
+  - repo: https://github.com/rubik/xenon
+    rev: v0.9.0
+    hooks:
+    - id: xenon
+      args: ['--max-absolute=B', '--max-modules=B', '--max-average=A']
