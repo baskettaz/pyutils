@@ -1,16 +1,17 @@
 # **************************************************************** #
 #                     STANDARD LIBRARY IMPORTS                     #
 # **************************************************************** #
-from os import makedirs, listdir
-from shutil import move
+from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor
+from os import listdir, makedirs
 from os.path import join
-from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor
+from shutil import move
+
+from MODULES.benchmarking.benchmarking_time import ClassicalTimer
 
 # **************************************************************** #
 #                          OTHER LIBRARIES                         #
 # **************************************************************** #
 from test_files_creation import generate_all_files
-from MODULES.benchmarking.benchmarking_time import ClassicalTimer
 from utils import con_delete
 
 # **************************************************************** #

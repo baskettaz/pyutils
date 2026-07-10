@@ -1,8 +1,8 @@
-from typing import Union, Iterable
+from collections.abc import Iterable
+from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor
 from functools import partial
-from shutil import copy
 from pathlib import Path
-from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor, Future
+from shutil import copy
 
 __all__ = [
     "copy_files",
@@ -29,7 +29,7 @@ def copy_with_ThreadPool(files: Iterable, destination: Path, workers=10) -> None
 def exe_in_chunks(
     files: Iterable,
     chunksize: int,
-    executor: Union[ProcessPoolExecutor, ThreadPoolExecutor],
+    executor: ProcessPoolExecutor | ThreadPoolExecutor,
     destination: Path,
     workers: int,
 ):
@@ -40,9 +40,7 @@ def exe_in_chunks(
             exe.submit(copy_files, chunk_files, destination)
 
 
-def copy_with_ThreadPool_in_batch(
-    files: Iterable, destination: Path, workers=10
-) -> None:
+def copy_with_ThreadPool_in_batch(files: Iterable, destination: Path, workers=10) -> None:
     destination.mkdir(exist_ok=True)
 
     if chunksize := round(len(files) / workers) > 1:
@@ -58,9 +56,7 @@ def copy_with_ProcessPool(files: Iterable, destination: Path, workers=4) -> None
         _ = [exe.submit(copy, file, destination) for file in files]
 
 
-def copy_with_ProcessPool_in_batch(
-    files: Iterable, destination: Path, workers: int = 4
-) -> None:
+def copy_with_ProcessPool_in_batch(files: Iterable, destination: Path, workers: int = 4) -> None:
     destination.mkdir(exist_ok=True)
 
     if chunksize := round(len(files) / workers) > 1:

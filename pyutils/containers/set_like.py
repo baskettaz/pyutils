@@ -8,9 +8,7 @@ from typing import (
     TypeVar,
 )
 
-
 from pyutils.functions.for_iterables import flatten
-
 
 T = TypeVar("T")
 

@@ -1,9 +1,8 @@
+from collections.abc import MutableMapping
+from types import GeneratorType
 from typing import (
     Any,
-    Optional,
 )
-from types import GeneratorType
-from collections.abc import MutableMapping
 
 
 def is_hashable(item: Any) -> bool:
@@ -29,7 +28,7 @@ def _validate_swapping(to_swap: MutableMapping) -> None:
         TypeError("Not all future keys could be swapped !")
 
 
-def is_swappable(to_swap: MutableMapping) -> Optional[bool]:
+def is_swappable(to_swap: MutableMapping) -> bool | None:
     _validate_swapping(to_swap)
 
     return True

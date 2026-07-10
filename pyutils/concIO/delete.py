@@ -1,9 +1,8 @@
-from typing import Iterable, Union
+from collections.abc import Iterable
+from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor
 from functools import partial
-from pathlib import Path
 from os import remove
-from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor
-
+from pathlib import Path
 
 __all__ = [
     "sequential_del",
@@ -21,7 +20,7 @@ def sequential_del(files: list[Path]) -> None:
 def execute_with_pool(
     files: list[Path],
     workers: int,
-    executor: Union[ProcessPoolExecutor, ThreadPoolExecutor],
+    executor: ProcessPoolExecutor | ThreadPoolExecutor,
 ) -> None:
     with executor(workers) as exe:
         exe.submit(sequential_del, files)
@@ -42,7 +41,7 @@ def ProcessPoolExecutor_del(files: list[Path], workers: int):
 def exe_in_chunks(
     files: Iterable,
     chunksize: int,
-    executor: Union[ProcessPoolExecutor, ThreadPoolExecutor],
+    executor: ProcessPoolExecutor | ThreadPoolExecutor,
     workers: int,
 ) -> None:
     with executor(workers) as exe:
@@ -57,7 +56,7 @@ def exe_in_chunks(
 def execute_with_pool_batch(
     files: list[Path],
     workers: int,
-    executor: Union[ProcessPoolExecutor, ThreadPoolExecutor],
+    executor: ProcessPoolExecutor | ThreadPoolExecutor,
 ) -> None:
     if chunksize := round(len(files) / workers) > 1:
         exe_in_chunks(files, chunksize, executor, workers)

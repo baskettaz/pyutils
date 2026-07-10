@@ -1,12 +1,7 @@
+from collections.abc import Callable, Generator, Hashable, Iterable, Iterator
 from typing import (
     Any,
-    Callable,
-    Generator,
-    Iterator,
-    Hashable,
-    Optional,
 )
-from collections.abc import Iterable
 
 from .generals import is_hashable
 
@@ -35,7 +30,7 @@ def safe_itemgetter(*items: Iterable, default: Any = None) -> Callable:
 
 def dedupe(
     items: Iterable[Hashable],
-    key: Optional[Callable] = None,
+    key: Callable | None = None,
 ) -> Iterator[Any]:
     """
     The function remove the duplicated elements and keeps the order

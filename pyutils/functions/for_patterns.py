@@ -1,16 +1,13 @@
 import mmap
 import re
+from collections.abc import Iterable, Iterator
+from pathlib import Path
 from re import (
     Pattern,
     RegexFlag,
 )
-
-from pathlib import Path
 from typing import (
     Any,
-    Iterable,
-    Iterator,
-    Optional,
 )
 
 
@@ -18,7 +15,7 @@ def multisplit(
     text: str,
     separators: Iterable[str],
     keep_sep: bool = False,
-    flags: Optional[RegexFlag] = None,
+    flags: RegexFlag | None = None,
 ) -> list:
     """
     The function is somewhat similar to the regular 'text'.split(...) function, but for multiple symbols.

@@ -1,11 +1,8 @@
 import cProfile
 import time
+from collections.abc import Callable, Generator
 from contextlib import contextmanager
 from pathlib import Path
-from typing import (
-    Callable,
-    Generator,
-)
 
 
 @contextmanager

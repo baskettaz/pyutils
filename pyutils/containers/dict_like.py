@@ -9,7 +9,6 @@ from typing import Any, Self, TypeVar
 
 from _typeshed import SupportsRichComparison
 
-
 K = TypeVar("K", bound=SupportsRichComparison)
 
 

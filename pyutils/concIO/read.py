@@ -1,19 +1,18 @@
 # **************************************************************** #
 #                     STANDARD LIBRARY IMPORTS                     #
 # **************************************************************** #
-import sys
+import asyncio
+from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor, as_completed
 from os import listdir
 from os.path import join
+
 import aiofiles
-import asyncio
-from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor
-from concurrent.futures import as_completed
+from MODULES.benchmarking.benchmarking_time import AsyncTimer, ClassicalTimer
 
 # **************************************************************** #
 #                          OTHER LIBRARIES                         #
 # **************************************************************** #
 from test_files_creation import generate_all_files
-from MODULES.benchmarking.benchmarking_time import ClassicalTimer, AsyncTimer
 
 # **************************************************************** #
 #                        MODULE VARIABLES                          #
@@ -40,13 +39,13 @@ def mod_decorator(func):
 
 
 def load_file(filepath):
-    with open(filepath, "r") as handle:
+    with open(filepath) as handle:
         return handle.read(), filepath
 
 
 async def load_file_async(filepath, semaphore):
     async with semaphore:
-        async with aiofiles.open(filepath, "r") as handle:
+        async with aiofiles.open(filepath) as handle:
             return (await handle.read(), filepath)
 
 
@@ -55,7 +54,7 @@ def load_files(filepaths):
     ta = tmp.append
 
     for filepath in filepaths:
-        with open(filepath, "r") as handle:
+        with open(filepath) as handle:
             ta(handle.read())
     return tmp, filepaths
 

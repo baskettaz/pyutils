@@ -1,16 +1,17 @@
 # **************************************************************** #
 #                     STANDARD LIBRARY IMPORTS                     #
 # **************************************************************** #
-from os import makedirs, listdir
+from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor
+from os import listdir, makedirs
 from os.path import join
-from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor
+
+from MODULES.benchmarking.benchmarking_time import ClassicalTimer
+from test_files_creation import generate_file_data
 
 # **************************************************************** #
 #                          OTHER LIBRARIES                         #
 # **************************************************************** #
 from utils import con_delete
-from test_files_creation import generate_file_data
-from MODULES.benchmarking.benchmarking_time import ClassicalTimer, AsyncTimer
 
 # **************************************************************** #
 #                        MODULE VARIABLES                          #
@@ -69,9 +70,7 @@ def sequential_write(path="tmp", num_files=NUM_FILES_TO_CREATE):
 
 
 @mod_decorator
-def ThreadPoolExecutor_write(
-    path="tmp", num_files=NUM_FILES_TO_CREATE, workers=WORKERS
-):
+def ThreadPoolExecutor_write(path="tmp", num_files=NUM_FILES_TO_CREATE, workers=WORKERS):
     makedirs(path, exist_ok=True)
 
     with ThreadPoolExecutor(workers) as exe:
@@ -87,9 +86,7 @@ def ProcessPoolExecutor_write(path="tmp", num_files=NUM_FILES_TO_CREATE, cpus=CP
 
 
 @mod_decorator
-def ProcessPoolExecutorInBatch_write(
-    path="tmp", num_files=NUM_FILES_TO_CREATE, cpus=CPUs
-):
+def ProcessPoolExecutorInBatch_write(path="tmp", num_files=NUM_FILES_TO_CREATE, cpus=CPUs):
     makedirs(path, exist_ok=True)
 
     identifiers = [i for i in range(num_files)]
@@ -106,9 +103,7 @@ def ProcessPoolExecutorInBatch_write(
 
 
 @mod_decorator
-def ProcessPoolExecutorInBatchThreaded_write(
-    path="tmp", num_files=NUM_FILES_TO_CREATE, cpus=CPUs
-):
+def ProcessPoolExecutorInBatchThreaded_write(path="tmp", num_files=NUM_FILES_TO_CREATE, cpus=CPUs):
     makedirs(path, exist_ok=True)
 
     identifiers = [i for i in range(num_files)]

@@ -1,21 +1,15 @@
-from typing import (
-    Any,
-    Callable,
-    Optional,
-    Union,
-    Iterator,
-    Iterable,
-    Hashable,
-)
+from collections.abc import Callable, Hashable, Iterable, Iterator, MutableMapping
 from functools import (
     partial,
     reduce,
 )
-from collections.abc import MutableMapping
+from typing import (
+    Any,
+)
 
 from pyutils.containers.dict_like import (
-    SingleEntryOrderedDict,
     SingleEntryDict,
+    SingleEntryOrderedDict,
 )
 
 from .generals import is_swappable
@@ -24,7 +18,7 @@ from .generals import is_swappable
 def swap_dict(
     to_swap: MutableMapping,
     ord_dict: bool = True,
-) -> Union[SingleEntryDict, SingleEntryOrderedDict]:
+) -> SingleEntryDict | SingleEntryOrderedDict:
     """
     The function swaps the keys and values of dictionary
 
@@ -52,7 +46,7 @@ def swap_dict(
 def rec_merge_dicts(
     d1: MutableMapping,
     d2: MutableMapping,
-    func: Optional[Callable] = None,
+    func: Callable | None = None,
 ) -> Iterator[tuple[str, Any]]:
     # Derived from jterrace on:
     # https://stackoverflow.com/questions/7204805/how-to-merge-dictionaries-of-dictionaries

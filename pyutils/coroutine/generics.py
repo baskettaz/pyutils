@@ -1,8 +1,6 @@
+from collections.abc import Callable, Generator
 from functools import wraps
-from typing import Any
-from typing import Callable
-from typing import Generator
-from typing import TypeVar
+from typing import Any, TypeVar
 
 T = TypeVar("T")
 

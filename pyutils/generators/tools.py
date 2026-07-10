@@ -4,15 +4,12 @@ import gzip
 import os
 import re
 import time
+from collections.abc import Callable, Hashable, Iterable
 from io import IOBase
 from pathlib import Path
 from typing import (
     Any,
-    Callable,
-    Hashable,
-    Iterable,
 )
-
 
 __all__ = [
     "OPENERS",
