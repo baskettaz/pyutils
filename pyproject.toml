@@ -48,7 +48,7 @@ docs = [
     "mkdocstrings-python",
 ]
 tools = [
-    "pre-commit>=4.6.0",
+    "prek>=0.4.10",
 ]
 
 [project.urls]

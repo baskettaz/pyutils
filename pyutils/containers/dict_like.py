@@ -7,7 +7,19 @@ from collections.abc import Callable, Iterable
 from copy import deepcopy
 from typing import Any, Self, TypeVar
 
-from _typeshed import SupportsRichComparison
+try:
+    from _typeshed import SupportsRichComparison
+except ImportError:
+    # Note:
+    # =====
+    # _typeshed is imported with the type checker, in this case `ty`,
+    # so it can't be realiable with cmd like `python -m pytest`
+    from typing import Protocol
+
+    class SupportsRichComparison(Protocol):
+        def __lt__(self, other: Any, /) -> bool: ...
+        def __gt__(self, other: Any, /) -> bool: ...
+
 
 K = TypeVar("K", bound=SupportsRichComparison)
 
