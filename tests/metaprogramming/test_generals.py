@@ -5,6 +5,13 @@ from pyutils.metaprogramming.generals import (
     NoInstances,
     Singleton,
     Cached,
+    OrderedMeta,
+)
+
+from pyutils.descriptors.computed_properties import (
+    String,
+    Integer,
+    Float,
 )
 
 import pytest
@@ -123,25 +130,48 @@ def test_cached_object_args_and_kwargs():
     assert id(d3) != id(d1)
 
 
-
 def test_cached_object_kwargs_only():
     class Dummy(metaclass=Cached):
         def __init__(self, b1=1, b2=2, b3=3):
             pass
 
     d1 = Dummy()
-    d2 = Dummy(b2=2,b1=1, b3=3)
-    d3 = Dummy(b3=3,b1=1, b2=2)
-    d4 = Dummy(b2=2,b3=3, b1=1)
+    d2 = Dummy(b2=2, b1=1, b3=3)
+    d3 = Dummy(b3=3, b1=1, b2=2)
+    d4 = Dummy(b2=2, b3=3, b1=1)
 
     assert id(d1) == id(d2) == id(d3) == id(d4)
 
 
 def test_cached_object_with_not_hashable_args():
     class Dummy(metaclass=Cached):
-        def __init__(self, a1 = [1,2,3]):
+        def __init__(self, a1=[1, 2, 3]):
             pass
-
 
     with pytest.raises(TypeError):
         Dummy()
+
+
+def test_ordered_meta():
+    class Stock(metaclass=OrderedMeta):
+        name = String()
+        shares = Integer()
+        price = Float()
+
+        def __init__(self, name, shares, price):
+            self.name = name
+            self.shares = shares
+            self.price = price
+
+    s = Stock("Google", 100, 490.1)
+
+    assert s._order == ["name", "shares", "price"]
+
+    with pytest.raises(TypeError):
+        Stock(100, 100, 100.0)
+
+    with pytest.raises(TypeError):
+        Stock("name", "shares", 100.0)
+
+    with pytest.raises(TypeError):
+        Stock("name", 100, "price")

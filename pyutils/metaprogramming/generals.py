@@ -1,6 +1,6 @@
 import inspect
 from functools import wraps
-from functools import lru_cache
+from collections import OrderedDict
 from inspect import (
     signature,
     Parameter,
@@ -8,6 +8,9 @@ from inspect import (
 )
 
 import weakref
+
+from pyutils.descriptors.computed_properties import Typed
+from pyutils.containers.dict_like import SingleEntryOrderedDict
 
 
 class PosArgsOnlyCls:
@@ -209,111 +212,144 @@ class Cached(type):
         return cls.cache[keys]
 
 
+# metaclass that uses OrderedDict for the class body
+class OrderedMeta(type):
+    """
+    Metaclass that preserves declaration order for typed descriptors.
 
-# # metaclass that uses OrderedDict for the class body
-# class OrderedMeta(type):
-#     def __new__(cls, clsname, bases, clsdict):
-#         d = dict(clsdict)  # up to this point, we need a OrderedDict()
-#         # afterwards will be turned to normal dict()
-#         # smart trick !
-#         order = []
-#         for name, value in clsdict.items():
-#             if isinstance(value, Typed):
-#                 value._name = name
-#                 order.append(name)
-#         d["_order"] = order  # extracted from the cls_dict and stored into cls_attr "_order"
-#         return type.__new__(cls, clsname, bases, d)
-#
-#     @classmethod
-#     def __prepare__(cls, clsname, bases):
-#         return OrderedDict()
-#
-#
-# class Structure(metaclass=OrderedMeta):
-#     def as_csv(self):
-#         return ",".join(str(getattr(self, name)) for name in self._order)
-#
-#
-# if __name__ == "__main__":
-#
-#     class Stock(Structure):
-#         name = String()
-#         shares = Integer()
-#         price = Float()
-#
-#         def __init__(self, name, shares, price):
-#             self.name = name
-#             self.shares = shares
-#             self.price = price
-#
-#     s = Stock("GOOG", 100, 490.1)
-#     print(s.name)
-#     print(s.as_csv())
-#     print("=" * 15)
-#     print(s.__dict__)
-#     print(type(s).__dict__)
-#     print("=" * 15)
-#     from pprint import pp
-#
-#     inst_dict = s.__dict__
-#     cls_dict = type(s).__dict__
-#     pp({k: cls_dict[k] for k in inst_dict if k in cls_dict})
-#     print("=" * 15)
-#
-#
-# # metaclass with optional arguments, to control or
-# # configure the processing during type creation
-#
-# # IMPLEMENTATION STRATEGY !!! - this pattern is a must !
-# # ======================================================
-#
-#
-# # e.g
-# # ---
-# # to support Spam() creation the pattern must be fulfilled !
-# class MyMeta(type):
-#     # Optional
-#     @classmethod
-#     def __prepare__(cls, name, bases, *, debug=False, synchronize=False):
-#         # Custom processing
-#         ...
-#         return super().__prepare__(name, bases)
-#
-#     # Required
-#     def __new__(cls, name, bases, ns, *, debug=False, synchronize=False):
-#         # Custom processing
-#         ...
-#         return super().__new__(cls, name, bases, ns)
-#
-#     # Required
-#     def __init__(self, name, bases, ns, *, debug=False, synchronize=False):
-#         # Custom processing
-#         ...
-#         super().__init__(name, bases, ns)
-#
-#
-# # implemented class with additional kwargs supplied
-# # VARIATION 1:
-# class Spam(metaclass=MyMeta, debug=True, synchronize=True): ...
-#
-#
-# # VARIATION 2:
-# class Spam(metaclass=MyMeta):
-#     debug = True
-#     synchronize = True
-#     ...
-#
-#
-# # <NB!> SUBTLE DIFFERENCE !
-# # =========================
-# # In VARIATOIN 1 the parameters are available in __prepare__(), which runs prioer to any
-# # statement in the class body.
-#
-# # In VARIATION 2 the class variables would only be accessible in the __new__() and __init__()
-#
-#
-#
-#
+    Purpose:
+        - When a class body uses descriptor/field objects (e.g. subclasses of
+          `Typed`), this metaclass captures the declaration order and stores it
+          on the created class as `_order` (a list of field names). It also assigns
+          the field name to the descriptor via `descriptor._name = name`.
+
+    Behavior:
+        - During class creation the metaclass iterates the prepared mapping (an
+          `OrderedDict()` returned by __prepare__) and collects attributes that
+          are instances of `Typed`.
+        - The collected order is stored on the class as `_order`, preserving the
+          order of declaration from the class body.
+
+    Notes:
+        - Requires that `__prepare__` returns an ordered mapping (this metaclass
+          provides `OrderedDict()`).
+        - The logic currently looks for instances of `Typed`. Adjust the type check if you
+          use a different descriptor base.
+
+    Example:
+        >>> class Thing(metaclass=OrderedMeta):
+        >>>     a = String()
+        >>>     b = Integer()
+        >>>     c = Float()
+
+        >>> Thing._order  # ['a', 'b', 'c']
+    """
+
+    def __new__(cls, clsname, bases, clsdict):
+        order = []
+        for name, value in clsdict.items():
+            if isinstance(value, Typed):
+                value._name = name
+                order.append(name)
+        d = dict(clsdict)
+        d["_order"] = order
+        # Final note: The alternative instance of `OrderedDict` have to be converted to regular dict
+        return type.__new__(cls, clsname, bases, d)
+
+    @classmethod
+    def __prepare__(cls, clsname, bases):
+        return OrderedDict()
+
+
+class NoDuplicationsOrderedMeta(type):
+    # Metaclass that preserves the public declaration order and prevents duplicate class-body keys.
+    def __new__(cls, clsname, bases, clsdict):
+        d = dict(clsdict)
+        d["_order"] = [name for name in clsdict if name[0] != "_"]
+        return type.__new__(cls, clsname, bases, d)
+
+    @classmethod
+    def __prepare__(cls, clsname, bases):
+        return SingleEntryOrderedDict(clsname)
+
+
+class MetaImplementationStrategy(type):
+    """
+    Metaclass template that accepts optional keyword configuration in the class header.
+
+    Purpose
+    - Show how to receive optional parameters when declaring a class with a metaclass:
+        class C(metaclass=Meta, debug=True, sync=False): ...
+    - Params passed this way are available to the metaclass hooks:
+        - __prepare__(..., *, debug=False, sync=False) runs before the class body
+        - __new__(..., *, debug=False, sync=False) runs when building the type
+        - __init__(..., *, debug=False, sync=False) runs after the type is created
+
+    Typical use
+    - Use __prepare__ to customize the mapping used for the class body (e.g. inject symbols,
+      use an ordered mapping, read boolean flags before the body runs).
+    - Use __new__ to transform or validate the collected namespace (ns) before the class object
+      is created.
+    - Use __init__ to finalize configuration on the resulting class object (attach caches, locks,
+      or perform runtime checks).
+
+    Key difference vs class attributes
+    - When you supply options in the class header (metaclass kwargs), they are visible to
+      __prepare__ before the class body executes. If you instead set attributes inside the body
+      (e.g. debug = True), those are only visible in __new__/__init__ (not in __prepare__).
+
+    Minimal example
+       >>> class MyMeta(MetaImplementationStrategy):
+       >>>     @classmethod
+       >>>     def __prepare__(cls, name, bases, *, debug=False, sync=False):
+       >>>         ns = super().__prepare__(name, bases)
+       >>>         ns['_meta_debug'] = debug   # available to class body
+       >>>         return ns
+
+       >>>     def __new__(cls, name, bases, ns, *, debug=False, sync=False):
+                   # can inspect or modify ns here
+       >>>         return super().__new__(cls, name, bases, ns)
+
+       >>>     def __init__(self, name, bases, ns, *, debug=False, sync=False):
+                   # attach runtime helpers based on options
+       >>>         if debug:
+       >>>             setattr(self, '__debug_mode__', True)
+       >>>         super().__init__(name, bases, ns)
+
+       # VARIATION 1: metaclass kwargs (seen in __prepare__)
+       >>> class A(metaclass=MyMeta, debug=True):
+               # class body can read _meta_debug injected in __prepare__
+       >>>     pass
+
+       # VARIATION 2: class attribute (only visible starting in __new__/__init__)
+       >>> class B(metaclass=MyMeta):
+       >>>     debug = True
+
+    Caveat
+    - Make sure metaclass method signatures accept the keyword arguments (use the same names and defaults),
+      otherwise Python will raise a TypeError when the class statement provides unexpected keyword args.
+    """
+
+    # Optional
+    @classmethod
+    def __prepare__(cls, name, bases, *, debug=False, synchronize=False):
+        # Custom processing
+        # ...
+        return super().__prepare__(name, bases)
+
+    # Required
+    def __new__(cls, name, bases, ns, *, debug=False, synchronize=False):
+        # Custom processing
+        # ...
+        return super().__new__(cls, name, bases, ns)
+
+    # Required
+    def __init__(self, name, bases, ns, *, debug=False, synchronize=False):
+        # Custom processing
+        # ...
+        super().__init__(name, bases, ns)
+
+
 # def make_sig(*names):
 #     parms = [Parameter(name, Parameter.POSITIONAL_OR_KEYWORD) for name in names]
 #     return Signature(parms)
