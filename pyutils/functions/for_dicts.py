@@ -1,4 +1,10 @@
-from collections.abc import Callable, Hashable, Iterable, Iterator, MutableMapping
+from collections.abc import (
+    Callable,
+    Hashable,
+    Iterable,
+    Iterator,
+    MutableMapping,
+)
 from functools import (
     partial,
     reduce,

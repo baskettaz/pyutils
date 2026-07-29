@@ -35,17 +35,18 @@ class DataKls(type):
         def __iter__(self):
             yield from vars(self).items()
 
-        def __eq__(self, other):
+        def __eq__(self, other) -> bool:
             if isinstance(other, type(self)):
                 return tuple(self) == tuple(other)
-            else:
-                return NotImplemented
+            return False
 
-        namespace["__repr__"] = __repr__
+        # fmt: off
         namespace["__init__"] = __init__
-        namespace["__hash__"] = __hash__
+        namespace["__repr__"] = __repr__
+        namespace["__eq__"]   = __eq__
         namespace["__iter__"] = __iter__
-        namespace["__eq__"] = __eq__
+        namespace["__hash__"] = __hash__
+        # fmt: on
 
         return super().__new__(mcls, name, bases, namespace)
 
