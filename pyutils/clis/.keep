@@ -1,0 +1,18 @@
+"""
+# TODO:
+Here need to be developed all ideas fro CLI-utilities, which should reduce the time of development and debugging of Python scripts.
+
+
+There will be need for something like :
+
+    [project.scripts]
+    mytool = "pyutils.clis.<something>:main"
+
+The mechanics need to be clarified, and written down in the documentation in the final cut.
+
+
+The first idea is to implement some recipies, which need to be copied from from somewhere else. The frequency of use of
+these recipies should be high, and the recipies should be small, and easy to understand. The recipies should be tested,
+and the tests should be included in the documentation.
+
+"""

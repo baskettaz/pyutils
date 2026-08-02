@@ -1,5 +1,7 @@
 import inspect
 from functools import wraps
+import types
+import logging
 from collections import OrderedDict
 from inspect import (
     signature,
@@ -420,24 +422,24 @@ class MetaImplementationStrategy(type):
 #
 # # ANOTHER EXAMPLE
 #
-# import logging
 #
 #
-# class MatchSignaturesMeta(type):
-#     # matches the method signatures
-#     def __init__(self, clsname, bases, clsdict):
-#         super().__init__(clsname, bases, clsdict)
-#         sup = super(self, self)
-#         for name, value in clsdict.items():
-#             if name.startswith("_") or not callable(value):
-#                 continue
-#             # get the previous definition (if any) and compare the signatures
-#             prev_dfn = getattr(sup, name, None)
-#             if prev_dfn:
-#                 prev_sig = signature(prev_dfn)
-#                 val_sig = signature(value)
-#                 if prev_sig != val_sig:
-#                     logging.warning("Signature mismatch in %s. %s != %s", value.__qualname__, prev_sig, val_sig)
+class MatchSignaturesMeta(type):
+    # matches the method signatures
+    # Cool usage to ensure the Liskov Substitution Principle (LSP) is respected in the class hierarchy
+    def __init__(self, clsname, bases, clsdict):
+        super().__init__(clsname, bases, clsdict)
+        sup = super(self, self)
+        for name, value in clsdict.items():
+            if name.startswith("_") or not callable(value):
+                continue
+            # get the previous definition (if any) and compare the signatures
+            prev_dfn = getattr(sup, name, None)
+            if prev_dfn:
+                prev_sig = signature(prev_dfn)
+                val_sig = signature(value)
+                if prev_sig != val_sig:
+                    logging.warning("Signature mismatch in %s. %s != %s", value.__qualname__, prev_sig, val_sig)
 #
 #
 # class Root2(metaclass=MatchSignaturesMeta):
@@ -465,129 +467,128 @@ class MetaImplementationStrategy(type):
 #     # b = B() #TypeError !
 #
 #
-# import types
 #
 #
-# class MultiMethod:
-#     """
-#     Represents a single multimethod ...
-#     """
-#
-#     def __init__(self, name):
-#         self._methods = {}
-#         self.__name__ = name
-#
-#     def register(self, meth):
-#         """
-#         Register a new method as a multimethod
-#         """
-#         sig = inspect.signature(meth)
-#
-#         # build a type signature from the method's annotations
-#         types = []
-#         for name, parm in sig.parameters.items():
-#             if name == "self":
-#                 continue
-#
-#             if parm.annotation is inspect.Parameter.empty:
-#                 raise TypeError("Argument {} must be annotated with a type".format(name))
-#
-#             if not isinstance(parm.annotation, type):
-#                 raise TypeError("Argument {} annotation must be a type".format(name))
-#
-#             if parm.default is not inspect.Parameter.empty:
-#                 self._methods[tuple(types)] = meth
-#
-#             types.append(parm.annotation)
-#
-#         self._methods[tuple(types)] = meth
-#
-#     def __call__(self, *args):
-#         """
-#         Call a method based on type signature of the arguments
-#         """
-#         types = tuple(type(arg) for arg in args[1:])
-#         meth = self._methods.get(types, None)
-#         if meth:
-#             return meth(*args)
-#         else:
-#             raise TypeError("No matching method for types {}".format(types))
-#
-#     def __get__(self, instance, cls):
-#         """
-#         Descriptor method needed to make calls work in a class
-#         """
-#         if instance is not None:
-#             return types.MethodType(self, instance)
-#         else:
-#             return self
-#
-#
-# class MultiDict(dict):
-#     """
-#     Special dictionary to build multimethods in a metaclass
-#     """
-#
-#     def __setitem__(self, key, value):
-#         if key in self:
-#             # if key already exists, it must be a multimethod or callable
-#             current_value = self[key]
-#             if isinstance(current_value, MultiMethod):
-#                 current_value.register(value)
-#             else:
-#                 mvalue = MultiMethod(key)
-#                 mvalue.register(current_value)
-#                 mvalue.register(value)
-#                 super().__setitem__(key, mvalue)
-#         else:
-#             super().__setitem__(key, value)
-#
-#
-# class MultiMeta(type):
-#     """
-#     Metaclass that allows multiple dispatch of methods
-#     """
-#
-#     def __new__(cls, clsname, bases, clsdict):
-#         return type.__new__(cls, clsname, bases, dict(clsdict))
-#
-#     @classmethod
-#     def __prepare__(cls, clsname, bases):
-#         return MultiDict()
+class MultiMethod:
+    """
+    Represents a single multimethod ...
+    """
+
+    def __init__(self, name):
+        self._methods = {}
+        self.__name__ = name
+
+    def register(self, meth):
+        """
+        Register a new method as a multimethod
+        """
+        sig = inspect.signature(meth)
+
+        # build a type signature from the method's annotations
+        types = []
+        for name, parm in sig.parameters.items():
+            if name == "self":
+                continue
+
+            if parm.annotation is inspect.Parameter.empty:
+                raise TypeError("Argument {} must be annotated with a type".format(name))
+
+            if not isinstance(parm.annotation, type):
+                raise TypeError("Argument {} annotation must be a type".format(name))
+
+            if parm.default is not inspect.Parameter.empty:
+                self._methods[tuple(types)] = meth
+
+            types.append(parm.annotation)
+
+        self._methods[tuple(types)] = meth
+
+    def __call__(self, *args):
+        """
+        Call a method based on type signature of the arguments
+        """
+        types = tuple(type(arg) for arg in args[1:])
+        meth = self._methods.get(types, None)
+        if meth:
+            return meth(*args)
+        else:
+            raise TypeError("No matching method for types {}".format(types))
+
+    def __get__(self, instance, cls):
+        """
+        Descriptor method needed to make calls work in a class
+        """
+        if instance is not None:
+            return types.MethodType(self, instance)
+        else:
+            return self
+
+
+class MultiDict(dict):
+    """
+    Special dictionary to build multimethods in a metaclass
+    """
+
+    def __setitem__(self, key, value):
+        if key in self:
+            # if key already exists, it must be a multimethod or callable
+            current_value = self[key]
+            if isinstance(current_value, MultiMethod):
+                current_value.register(value)
+            else:
+                mvalue = MultiMethod(key)
+                mvalue.register(current_value)
+                mvalue.register(value)
+                super().__setitem__(key, mvalue)
+        else:
+            super().__setitem__(key, value)
+
+
+class MultiMeta(type):
+    """
+    Metaclass that allows multiple dispatch of methods
+    """
+
+    def __new__(cls, clsname, bases, clsdict):
+        return type.__new__(cls, clsname, bases, dict(clsdict))
+
+    @classmethod
+    def __prepare__(cls, clsname, bases):
+        return MultiDict()
 #
 #
 # # =================================================================
 # # ALTERNATIVE WITH DECORATOR (for me is much more elegant then the
 # # solution with the metaclasses ....)
 # # =================================================================
-# class multimethod:
-#     def __init__(self, func):
-#         self._methods = {}
-#         self.__name__ = func.__name__
-#         self._default = func
-#
-#     def match(self, *types):
-#         def register(func):
-#             ndefaults = len(func.__defaults__) if func.__defaults__ else 0
-#             for n in range(ndefaults + 1):
-#                 self._methods[types[: len(types) - n]] = func
-#             return self
-#
-#         return register
-#
-#     def __call__(self, *args):
-#         types = tuple(type(arg) for arg in args[1:])
-#         meth = self._methods.get(types, None)
-#         if meth:
-#             return meth(*args)
-#         else:
-#             return self._default(*args)
-#
-#     def __get__(self, instance, cls):
-#         if instance is not None:
-#             return types.MethodType(self, instance)
-#         else:
-#             return self
+class multimethod:
+    def __init__(self, func):
+        self._methods = {}
+        self.__name__ = func.__name__
+        self._default = func
+
+    def match(self, *types):
+        def register(func):
+            ndefaults = len(func.__defaults__) if func.__defaults__ else 0
+            for n in range(ndefaults + 1):
+                self._methods[types[: len(types) - n]] = func
+            return self
+
+        return register
+
+    def __call__(self, *args):
+        types = tuple(type(arg) for arg in args[1:])
+        meth = self._methods.get(types, None)
+        if meth:
+            return meth(*args)
+        else:
+            return self._default(*args)
+
+    def __get__(self, instance, cls):
+        if instance is not None:
+            return types.MethodType(self, instance)
+        else:
+            return self
 #
 #
 # if __name__ == "__main__":

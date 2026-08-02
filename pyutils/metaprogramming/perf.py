@@ -62,7 +62,7 @@ class C{n}:
 """
 
 meta_dataklass_template = """
-class C{n}(metaclass=DataKls):
+class C{n}(DataKlsBase):
     a : int
     b : int
     c : int
@@ -107,7 +107,7 @@ def main(reps):
     write_perftemp(100, dataklass_template, "from dataklasses import dataklass\n")
     run_test("dataklasses", reps)
 
-    write_perftemp(100, meta_dataklass_template, "from dataklasses import DataKls\n")
+    write_perftemp(100, meta_dataklass_template, "from dataklasses import DataKlsBase\n")
     run_test("meta_dataklasses", reps)
 
 if __name__ == "__main__":

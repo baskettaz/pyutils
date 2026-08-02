@@ -7,6 +7,13 @@ from typing import (
 import inspect
 
 
+# Note:
+# =====
+# Original dataklass implementation and inspiration is from David Beazley,
+# and it is available at https://github.com/dabeaz/dataklasses, but copied here
+# for ease of use and modification.
+
+
 class DataKls(type):
     def make_keys(cls, **kwargs) -> OrderedDict:
         sig = inspect.signature(cls.__init__)
@@ -82,19 +89,9 @@ class DataKls(type):
         return obj
 
 
-# dataklasses.py
-#
-#     https://github.com/dabeaz/dataklasses
-#
-# Author: David Beazley (@dabeaz).
-#         http://www.dabeaz.com
-#
-# Copyright (C) 2021-2022.
-#
-# Permission is granted to use, copy, and modify this code in any
-# manner as long as this copyright message and disclaimer remain in
-# the source code.  There is no warranty.  Try to use the code for the
-# greater good.
+class DataKlsBase(metaclass=DataKls):
+    pass
+
 
 from functools import lru_cache, reduce
 
