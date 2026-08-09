@@ -1,20 +1,19 @@
-from pyutils.metaprogramming.generals import (
-    PosArgsOnlyCls,
-    PosArgsKwargsCls,
-    assert_func_types,
-    NoInstances,
-    Singleton,
-    Cached,
-    OrderedMeta,
-)
+import pytest
 
 from pyutils.descriptors.computed_properties import (
-    String,
-    Integer,
     Float,
+    Integer,
+    String,
 )
-
-import pytest
+from pyutils.metaprogramming.generals import (
+    Cached,
+    NoInstances,
+    OrderedMeta,
+    PosArgsKwargsCls,
+    PosArgsOnlyCls,
+    Singleton,
+    assert_func_types,
+)
 
 
 def test_pos_args_only_correct():

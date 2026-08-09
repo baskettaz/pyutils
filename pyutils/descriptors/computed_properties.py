@@ -80,12 +80,12 @@ class SizedString(String, MaxSized):
 # class decorator to apply constraints
 def check_attributes(**kwargs):
     def decorate(cls):
-        for k, v in kwargs.items():
-            if isinstance(v, Descriptor):
-                v.name = k
-                setattr(cls, k, v)
+        for key, value in kwargs.items():
+            if isinstance(value, Descriptor):
+                value.name = key
+                setattr(cls, key, value)
             else:
-                setattr(cls, k, v(k))
+                setattr(cls, key, value(key))
         return cls
 
     return decorate

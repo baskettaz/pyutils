@@ -70,11 +70,10 @@ class C{n}(DataKlsBase):
     e : int
 """
 
+
 def run_test(name, n):
     start = time.time()
     while n > 0:
-        import perftemp
-
         del sys.modules["perftemp"]
         n -= 1
     end = time.time()
@@ -109,6 +108,7 @@ def main(reps):
 
     write_perftemp(100, meta_dataklass_template, "from dataklasses import DataKlsBase\n")
     run_test("meta_dataklasses", reps)
+
 
 if __name__ == "__main__":
     if len(sys.argv) == 2:

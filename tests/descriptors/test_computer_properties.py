@@ -1,10 +1,11 @@
 from typing import Any
+
 import pytest
 
 from pyutils.descriptors.computed_properties import (
     SizedString,
-    UnsignedInteger,
     UnsignedFloat,
+    UnsignedInteger,
     check_attributes,
     checkedmeta,
 )
