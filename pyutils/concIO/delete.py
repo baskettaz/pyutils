@@ -4,14 +4,6 @@ from functools import partial
 from os import remove
 from pathlib import Path
 
-__all__ = [
-    "sequential_del",
-    "ThreadPoolExecutor_del",
-    "ProcessPoolExecutor_del",
-    "ThreadPoolExecutorInBatch_del",
-    "ProcessPoolExecutorInBatch_del",
-]
-
 
 def sequential_del(files: list[Path]) -> None:
     _ = [remove(file) for file in files]

@@ -27,9 +27,8 @@ def debug_logging(level=logging.DEBUG):
         logger.setLevel(old_level)
 
 
-
 @contextmanager
-def log_level(level, name:str):
+def log_level(level, name: str):
     """
     Temporarily set the logging level for a named logger and yield the logger.
 

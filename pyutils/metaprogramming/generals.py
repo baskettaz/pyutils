@@ -1,18 +1,19 @@
 import inspect
-from functools import wraps
-import types
 import logging
+import types
+import weakref
 from collections import OrderedDict
+from collections.abc import Callable
+from functools import wraps
 from inspect import (
     signature,
-    Parameter,
-    Signature,
+)
+from typing import (
+    Any,
 )
 
-import weakref
-
-from pyutils.descriptors.computed_properties import Typed
 from pyutils.containers.dict_like import SingleEntryOrderedDict
+from pyutils.descriptors.computed_properties import Typed
 
 
 class PosArgsOnlyCls:
@@ -31,7 +32,7 @@ class PosArgsOnlyCls:
 
     def __init__(self, *args):
         if len(args) != len(self._fields):
-            raise TypeError("Expected {} arguments".format(len(self._fields)))
+            raise TypeError(f"Expected {len(self._fields)} arguments")
 
         for name, value in zip(self._fields, args):
             setattr(self, name, value)
@@ -60,7 +61,7 @@ class PosArgsKwargsCls:
 
     def __init__(self, *args, **kwargs):
         if len(args) > len(self._fields):
-            raise TypeError("Expected {} arguments".format(len(self._fields)))
+            raise TypeError(f"Expected {len(self._fields)} arguments")
 
         # set all positional arguments
         for name, value in zip(self._fields, args):
@@ -137,7 +138,7 @@ def assert_func_types(*ty_args, **ty_kwargs):
             for name, value in bound_values.arguments.items():
                 if name in bound_types:
                     if not isinstance(value, bound_types[name]):
-                        raise TypeError("Argument {} must be {}".format(name, bound_types[name]))
+                        raise TypeError(f"Argument {name} must be {bound_types[name]}")
             return func(*args, **kwargs)
 
         return wrapper
@@ -207,7 +208,7 @@ class Cached(type):
 
     def __call__(cls, *args, **kwargs):
         keys = cls.make_keys(*args, **kwargs)
-        if not keys in cls.cache:
+        if keys not in cls.cache:
             obj = super().__call__(*args, **kwargs)
             cls.cache[keys] = obj
 
@@ -440,6 +441,8 @@ class MatchSignaturesMeta(type):
                 val_sig = signature(value)
                 if prev_sig != val_sig:
                     logging.warning("Signature mismatch in %s. %s != %s", value.__qualname__, prev_sig, val_sig)
+
+
 #
 #
 # class Root2(metaclass=MatchSignaturesMeta):
@@ -474,11 +477,11 @@ class MultiMethod:
     Represents a single multimethod ...
     """
 
-    def __init__(self, name):
-        self._methods = {}
+    def __init__(self, name: str) -> None:
         self.__name__ = name
+        self._methods = {}
 
-    def register(self, meth):
+    def register(self, meth: Callable) -> None:
         """
         Register a new method as a multimethod
         """
@@ -491,10 +494,10 @@ class MultiMethod:
                 continue
 
             if parm.annotation is inspect.Parameter.empty:
-                raise TypeError("Argument {} must be annotated with a type".format(name))
+                raise TypeError(f"Argument {name} must be annotated with a type")
 
             if not isinstance(parm.annotation, type):
-                raise TypeError("Argument {} annotation must be a type".format(name))
+                raise TypeError(f"Argument {name} annotation must be a type")
 
             if parm.default is not inspect.Parameter.empty:
                 self._methods[tuple(types)] = meth
@@ -503,7 +506,7 @@ class MultiMethod:
 
         self._methods[tuple(types)] = meth
 
-    def __call__(self, *args):
+    def __call__(self, *args) -> Any:
         """
         Call a method based on type signature of the arguments
         """
@@ -512,7 +515,7 @@ class MultiMethod:
         if meth:
             return meth(*args)
         else:
-            raise TypeError("No matching method for types {}".format(types))
+            raise TypeError(f"No matching method for types {types}")
 
     def __get__(self, instance, cls):
         """
@@ -555,6 +558,8 @@ class MultiMeta(type):
     @classmethod
     def __prepare__(cls, clsname, bases):
         return MultiDict()
+
+
 #
 #
 # # =================================================================
@@ -562,13 +567,13 @@ class MultiMeta(type):
 # # solution with the metaclasses ....)
 # # =================================================================
 class multimethod:
-    def __init__(self, func):
+    def __init__(self, func: Callable) -> None:
         self._methods = {}
         self.__name__ = func.__name__
         self._default = func
 
-    def match(self, *types):
-        def register(func):
+    def match(self, *types) -> Callable:
+        def register(func: Callable):
             ndefaults = len(func.__defaults__) if func.__defaults__ else 0
             for n in range(ndefaults + 1):
                 self._methods[types[: len(types) - n]] = func
@@ -576,7 +581,7 @@ class multimethod:
 
         return register
 
-    def __call__(self, *args):
+    def __call__(self, *args) -> Any:
         types = tuple(type(arg) for arg in args[1:])
         meth = self._methods.get(types, None)
         if meth:
@@ -589,6 +594,8 @@ class multimethod:
             return types.MethodType(self, instance)
         else:
             return self
+
+
 #
 #
 # if __name__ == "__main__":
@@ -644,20 +651,22 @@ class multimethod:
 #     s2.bar("blups", 100)
 #
 #
-# def typed_property(name, expected_type):
-#     storage_name = "_" + name
-#
-#     @property
-#     def prop(self):
-#         return getattr(self, storage_name)
-#
-#     @prop.setter
-#     def prop(self, value):
-#         if not isinstance(value, expected_type):
-#             raise TypeError("{} must be a {}".format(name, expected_type))
-#         setattr(self, storage_name, value)
-#
-#     return prop
+def typed_property(name, expected_type):
+    storage_name = "_" + name
+
+    @property
+    def prop(self) -> Any:
+        return getattr(self, storage_name)
+
+    @prop.setter
+    def prop(self, value) -> None:
+        if not isinstance(value, expected_type):
+            raise TypeError(f"{name} must be a {expected_type}")
+        setattr(self, storage_name, value)
+
+    return prop
+
+
 #
 #
 # if __name__ == "__main__":
