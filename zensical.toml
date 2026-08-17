@@ -2,7 +2,9 @@
 site_name = "pyutils"
 site_url = "https://baskettaz.github.io/pyutils/"
 repo_url = "https://github.com/baskettaz/pyutils"
-repo_name = "baskettaz/pyutils"
+repo_name = "pyutils"
+docs_dir = "docs"
+site_dir = "site"
 
 nav = [
   { "Home" = "index.md" },
@@ -24,4 +26,4 @@ toggle.icon = "material/brightness-4"
 toggle.name = "Switch to light mode"
 
 [project.plugins.mkdocstrings.handlers.python]
-paths = ["src"]
+paths = ["pyutils"]

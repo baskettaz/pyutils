@@ -22,6 +22,7 @@ license = {text = "MIT"}
 dependencies = [
   "typer",
   "rich",
+  "zensical>=0.0.50",
 ]
 requires-python = ">= 3.12"
 

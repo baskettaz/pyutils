@@ -1,6 +1,14 @@
-import inspect
 from collections import OrderedDict
-from typing import Any, get_type_hints
+import inspect
+from typing import (
+    Any,
+    get_type_hints,
+)
+
+from functools import (
+    lru_cache,
+    reduce,
+)
 
 # Note:
 # =====
@@ -80,7 +88,6 @@ class DataKlsBase(metaclass=DataKls):
     pass
 
 
-from functools import lru_cache, reduce
 
 
 def codegen(func):
