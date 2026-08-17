@@ -76,14 +76,3 @@ def trace_everything() -> None:
         return trace
 
     sys.settrace(trace)
-
-
-
-
-
-if __name__ == '__main__':
-    trace_everything()
-    def bla():
-        print('how coool')
-
-    bla()
