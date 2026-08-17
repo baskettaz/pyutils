@@ -9,9 +9,8 @@ trace_types = (
     types.BuiltinFunctionType,
     types.BuiltinMethodType,
     types.MethodDescriptorType,
-    types.ClassMethodDescriptorType
+    types.ClassMethodDescriptorType,
 )
-
 
 
 def trace_func(func):
@@ -45,15 +44,14 @@ def trace_class_decorator(klass):
     return klass
 
 
-
 class TraceMeta(type):
     def __new__(meta, name, bases, class_dict):
         klass = super().__new__(meta, name, bases, class_dict)
 
         for key in dir(klass):
-            value  = getattr(klass, key)
+            value = getattr(klass, key)
             if isinstance(value, trace_types):
-                wrapped  = trace_func(value)
+                wrapped = trace_func(value)
                 setattr(klass, key, wrapped)
 
         return klass
@@ -70,6 +68,7 @@ def trace_everything() -> None:
     - Other frame events ("call", "return", "exception") are silently ignored.
     - Once enabled, tracing remains active until sys.settrace(None) is called.
     """
+
     def trace(frame, event, arg) -> Callable:
         if event == "line":
             print(f"{frame.f_code.co_filename}:{frame.f_lineno}")

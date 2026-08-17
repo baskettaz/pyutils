@@ -12,7 +12,6 @@ from typing import (
 from .generics import coroutine
 
 
-
 @coroutine
 def grep(pattern: str, target: Coroutine) -> None:
     cpat = re.compile(pattern)

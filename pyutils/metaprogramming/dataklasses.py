@@ -88,8 +88,6 @@ class DataKlsBase(metaclass=DataKls):
     pass
 
 
-
-
 def codegen(func):
     @lru_cache
     def make_func_code(numfields):
