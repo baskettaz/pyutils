@@ -1,6 +1,9 @@
 import mmap
 import re
-from collections.abc import Iterable, Iterator
+from collections.abc import (
+    Iterable,
+    Iterator,
+)
 from pathlib import Path
 from re import (
     Pattern,
@@ -9,6 +12,8 @@ from re import (
 from typing import (
     Any,
 )
+
+from difflib import SequenceMatcher
 
 
 def multisplit(
@@ -72,3 +77,23 @@ def find_pattern(path: Path, pattern: Pattern[bytes]) -> Iterator[Any]:
     with open(path) as file:
         with mmap.mmap(file.fileno(), length=0, access=mmap.ACCESS_READ) as mmap_obj:
             yield from pattern.finditer(mmap_obj)
+
+
+def is_fuzzy_match(query: str, text: str, expected_ratio: float = 0.5) -> bool:
+    """
+    Check whether a query matches a text using substring or fuzzy matching.
+
+    A direct substring match always returns True. Otherwise, the
+    similarity ratio must be greater than expected_ratio.
+    """
+    query = query.lower()
+    text = text.lower()
+
+    # direct substring = always good
+    if query in text:
+        return True
+
+    # fuzzy similarity
+    ratio = SequenceMatcher(None, query, text).ratio()
+
+    return ratio > expected_ratio

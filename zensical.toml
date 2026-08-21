@@ -10,7 +10,9 @@ nav = [
   { "Home" = "index.md" },
   { "Installation" = "installation.md" },
   { "Usage" = "usage.md" },
-  { "API Reference" = "api.md" },
+  { "API Reference" = [
+      "pyutils/containers/dict_like.md",
+  ] },
 ]
 
 [[project.theme.palette]]
