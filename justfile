@@ -75,7 +75,7 @@ release:
     uv run scripts/release.py
 
 # Remove all build, test, coverage and Python artifacts
-clean: clean-build clean-pyc clean-test
+clean: clean-build clean-pyc-linux clean-test
 
 # Remove build artifacts
 clean-build:
@@ -85,12 +85,19 @@ clean-build:
 	find . -name '*.egg-info' -exec rm -fr {} +
 	find . -name '*.egg' -exec rm -f {} +
 
-# Remove Python file artifacts
-clean-pyc:
+# Remove Python file artifacts(Linux)
+clean-pyc-linux:
 	find . -name '*.pyc' -exec rm -f {} +
 	find . -name '*.pyo' -exec rm -f {} +
 	find . -name '*~' -exec rm -f {} +
 	find . -name '__pycache__' -exec rm -fr {} +
+
+# Remove Python file artifacts(Windows)
+clean-pyc-win:
+    Get-ChildItem -Path . -Recurse -File -Filter "*.pyc" | Remove-Item -Force
+    Get-ChildItem -Path . -Recurse -File -Filter "*.pyo" | Remove-Item -Force
+    Get-ChildItem -Path . -Recurse -File -Filter "*~"    | Remove-Item -Force
+    Get-ChildItem -Path . -Recurse -Directory -Filter "__pycache__" | Remove-Item -Recurse -Force
 
 # Remove test and coverage artifacts
 clean-test:

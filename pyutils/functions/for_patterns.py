@@ -97,3 +97,27 @@ def is_fuzzy_match(query: str, text: str, expected_ratio: float = 0.5) -> bool:
     ratio = SequenceMatcher(None, query, text).ratio()
 
     return ratio > expected_ratio
+
+
+def is_same_meta_data(first: Path, second: Path) -> bool:
+    "Checks only if the main meta-data (size, creation time and update time) are the same"
+    return (
+        first.stat().st_size == second.stat().st_size
+        and first.stat().st_ctime == second.stat().st_ctime
+        and first.stat().st_mtime == second.stat().st_mtime
+    )
+
+
+def is_same_file(first: Path, second: Path, chunk_size: int = 8192) -> bool:
+    "Goes for the extra mile and checks chunk by chunk if everything ok"
+    if not is_same_meta_data(first, second):
+        return False
+
+    with open(first, "rb") as f1, open(second, "rb") as f2:
+        while True:
+            b1 = f1.read(chunk_size)
+            b2 = f2.read(chunk_size)
+            if b1 != b2:
+                return False
+            if not b1:  # EOF
+                return True
