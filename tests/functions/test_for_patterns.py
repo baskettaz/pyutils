@@ -40,6 +40,17 @@ def test_is_fuzzy_match_handles_substring_and_similarity() -> None:
     assert is_fuzzy_match("xyz", "abc") is False
 
 
+def test_is_same_file_detects_same_contents_and_different_contents(tmp_path) -> None:
+    same = tmp_path / "same.txt"
+    same.write_bytes(b"same content")
+
+    assert is_same_file(same, same) is True
+
+    different = tmp_path / "different.txt"
+    different.write_bytes(b"different content")
+    assert is_same_file(same, different) is False
+
+
 @pytest.mark.xfail(reason="Windows ctime differs even when file sizes and mtimes match, so same path metadata checks are unreliable here")
 def test_same_metadata_and_files(tmp_path) -> None:
     first = tmp_path / "one.txt"
