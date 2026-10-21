@@ -29,6 +29,7 @@ def test_hashable_and_generator_checks() -> None:
 
 def test_is_swappable_requires_hashable_values() -> None:
     assert is_swappable({"a": 1, "b": 2}) is True
+    assert is_swappable({"a": [1], "b": 2}) is True
 
     with pytest.raises(TypeError):
         is_swappable([])

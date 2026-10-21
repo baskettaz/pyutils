@@ -1,5 +1,6 @@
 import pytest
 
+from pyutils.containers.dict_like import SingleEntryOrderedDict
 from pyutils.descriptors.computed_properties import (
     Float,
     Integer,
@@ -7,8 +8,12 @@ from pyutils.descriptors.computed_properties import (
 )
 from pyutils.metaprogramming.generals import (
     Cached,
+    MatchSignaturesMeta,
+    MetaImplementationStrategy,
+    MultiDict,
     MultiMeta,
     MultiMethod,
+    NoDuplicationsOrderedMeta,
     NoInstances,
     OrderedMeta,
     PosArgsKwargsCls,
@@ -225,3 +230,109 @@ def test_multimethod_decorator_dispatch() -> None:
     example = Example()
     assert example.add(3, 4) == 7
     assert example.add("x", "y") == "xy"
+    with pytest.raises(TypeError):
+        example.add("x", 1)
+
+
+def test_metaclass_edge_cases_and_multimethod_branches(caplog):
+    with pytest.raises(ValueError):
+        NoDuplicationsOrderedMeta.__prepare__("Duplicate", ())
+
+    Duplicate = NoDuplicationsOrderedMeta.__new__(NoDuplicationsOrderedMeta, "Duplicate", (), {"a": 1, "b": 2})
+    assert Duplicate._order == ["a", "b"]
+    with pytest.raises(ValueError):
+        SingleEntryOrderedDict("Duplicate")
+
+    class Root(metaclass=MatchSignaturesMeta):
+        def run(self, x):
+            return x
+
+    with caplog.at_level("WARNING"):
+        class Child(Root):
+            def run(self, x, y):
+                return x + y
+
+    assert "Signature mismatch" in caplog.text
+
+    class Built(metaclass=MetaImplementationStrategy, debug=True, synchronize=True):
+        pass
+
+    assert Built.__name__ == "Built"
+
+
+def test_assert_func_types_and_multimethod_exceptions() -> None:
+    @assert_func_types(int, int)
+    def pair_sum(x, y):
+        return x + y
+
+    with pytest.raises(TypeError):
+        pair_sum(1, 2, 3)
+
+    with pytest.raises(TypeError):
+        pair_sum(1, "2")
+
+    mm = MultiMethod("demo")
+
+    def add_int(self, x: int):
+        return x + 1
+
+    def add_str(self, x: str):
+        return x + "!"
+
+    mm.register(add_int)
+    mm.register(add_str)
+
+    class Demo:
+        pass
+
+    bound = mm.__get__(Demo(), Demo)
+    assert bound(2) == 3
+    assert mm.__get__(None, Demo) is mm
+
+    md = MultiDict()
+
+    def base(self, value: int):
+        return value
+
+    def shifted(self, value: int, offset: int = 0):
+        return value + offset
+
+    md["demo"] = base
+    md["demo"] = shifted
+    assert isinstance(md["demo"], MultiMethod)
+
+    class DemoTarget:
+        pass
+
+    bound = md["demo"].__get__(DemoTarget(), DemoTarget)
+    assert bound(10) == 10
+    assert bound(10, 20) == 30
+
+    # This deliberately exercises the annotation validation path.
+    with pytest.raises(TypeError):
+        mm.register(lambda self, x: x)
+
+    class Overloaded(metaclass=MultiMeta):
+        def add(self, x: int, y: int):
+            return x + y
+
+        def add(self, x: str, y: str):
+            return x + y
+
+    assert Overloaded().add(1, 2) == 3
+    assert Overloaded().add("a", "b") == "ab"
+
+    multi = MultiMethod("combine")
+
+    def add_numbers(self, x: int, y: int = 0):
+        return x + y
+
+    def add_strings(self, x: str, y: str):
+        return x + y
+
+    multi.register(add_numbers)
+    multi.register(add_strings)
+    assert multi(Overloaded(), 2, 3) == 5
+    assert multi(Overloaded(), "x", "y") == "xy"
+    with pytest.raises(TypeError):
+        multi(Overloaded(), 1, "x")

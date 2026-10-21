@@ -223,6 +223,33 @@ def test_update_with_sorted_dict():
     assert d1.items() == [("a", 1), ("b", 2)]
 
 
+def test_sorted_dict_init_from_sorted_dict_and_update_existing_key():
+    source = SortedDict({"b": 2, "a": 1})
+    copy = SortedDict(source)
+
+    assert copy.items() == [("a", 1), ("b", 2)]
+
+    copy["a"] = 9
+    assert copy["a"] == 9
+
+
+def test_sorted_dict_update_with_items_protocol():
+    d = SortedDict({"a": 1})
+
+    class Items:
+        def items(self):
+            return [("b", 2), ("c", 3)]
+
+    d.update(Items())
+    assert d.items() == [("a", 1), ("b", 2), ("c", 3)]
+
+
+def test_safe_entry_dict_uses_base_key_when_suffix_is_not_numeric():
+    d = SafeEntryDict([("file", 1), ("file", 2)])
+
+    assert dict(d) == {"file": 1, "file(1)": 2}
+
+
 def test_from_keys():
     d = SortedDict.from_keys("KYLIE", 7)
     assert d.items() == [("E", 7), ("I", 7), ("K", 7), ("L", 7), ("Y", 7)]

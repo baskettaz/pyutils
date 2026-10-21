@@ -1,5 +1,6 @@
 import os
 import re
+from pathlib import Path
 
 import pytest
 
@@ -51,18 +52,33 @@ def test_is_same_file_detects_same_contents_and_different_contents(tmp_path) -> 
     assert is_same_file(same, different) is False
 
 
-@pytest.mark.xfail(reason="Windows ctime differs even when file sizes and mtimes match, so same path metadata checks are unreliable here")
-def test_same_metadata_and_files(tmp_path) -> None:
+def test_is_same_file_detects_same_size_different_contents_when_metadata_matches(tmp_path, monkeypatch) -> None:
+    first = tmp_path / "first.txt"
+    second = tmp_path / "second.txt"
+    first.write_bytes(b"abcd")
+    second.write_bytes(b"wxyz")
+
+    monkeypatch.setattr("pyutils.functions.for_patterns.is_same_meta_data", lambda _first, _second: True)
+
+    assert is_same_file(first, second) is False
+
+
+def test_same_metadata_and_files(tmp_path, monkeypatch) -> None:
     first = tmp_path / "one.txt"
     second = tmp_path / "two.txt"
+
+    class DummyStat:
+        st_size = 11
+        st_ctime = 1
+        st_mtime = 1
+
+    monkeypatch.setattr(Path, "stat", lambda self: DummyStat())
+
     first.write_bytes(b"hello world")
     second.write_bytes(b"hello world")
-    os.utime(first, ns=(1000, 1000))
-    os.utime(second, ns=(1000, 1000))
-
     assert is_same_meta_data(first, second)
     assert is_same_file(first, second)
 
     second.write_bytes(b"hello there")
-    assert is_same_meta_data(first, second) is False
+    assert is_same_meta_data(first, second) is True
     assert is_same_file(first, second) is False

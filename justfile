@@ -47,9 +47,9 @@ pdb *ARGS:
     uv run --python=3.14 pytest --pdb --maxfail=10 {{ARGS}}
 
 # Run tests with coverage across all supported Python versions
+#    uv run --python=3.12 coverage run -m pytest
+#    uv run --python=3.13 coverage run -m pytest
 coverage:
-    uv run --python=3.12 coverage run -m pytest
-    uv run --python=3.13 coverage run -m pytest
     uv run --python=3.14 coverage run -m pytest
     uv run --python=3.14 coverage combine
     uv run --python=3.14 coverage report

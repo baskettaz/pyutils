@@ -131,3 +131,12 @@ def test_ixor(left, right):
     expected = OrderedSet([1, 2, 5])
 
     assert left == expected
+
+
+def test_string_and_equality_edges() -> None:
+    ordered = OrderedSet([1, 2])
+
+    assert str(ordered) == "OrderedSet(1\n2)"
+    assert ordered != [1, 2]
+    assert OrderedSet() == OrderedSet()
+    assert OrderedSet().is_iterable(None) is None
