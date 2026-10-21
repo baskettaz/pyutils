@@ -11,7 +11,62 @@ nav = [
   { "Installation" = "installation.md" },
   { "Usage" = "usage.md" },
   { "API Reference" = [
-      "pyutils/containers/dict_like.md",
+      { "pyutils" = [
+          "pyutils/index.md",
+          "pyutils/cli.md",
+          "pyutils/utils.md",
+          "pyutils/__main__.md",
+      ] },
+      { "Containers" = [
+          "pyutils/containers/index.md",
+          "pyutils/containers/dict_like.md",
+          "pyutils/containers/list_like.md",
+          "pyutils/containers/set_like.md",
+      ] },
+      { "Functions" = [
+          "pyutils/functions/index.md",
+          "pyutils/functions/for_benchmarks.md",
+          "pyutils/functions/for_dicts.md",
+          "pyutils/functions/for_iterables.md",
+          "pyutils/functions/for_path_operations.md",
+          "pyutils/functions/for_patterns.md",
+          "pyutils/functions/generals.md",
+          "pyutils/functions/tracing.md",
+      ] },
+      { "Metaprogramming" = [
+          "pyutils/metaprogramming/index.md",
+          "pyutils/metaprogramming/dataklasses.md",
+          "pyutils/metaprogramming/generals.md",
+          "pyutils/metaprogramming/perf.md",
+          "pyutils/metaprogramming/perftemp.md",
+      ] },
+      { "Descriptors" = [
+          "pyutils/descriptors/index.md",
+          "pyutils/descriptors/computed_properties.md",
+      ] },
+      { "concIO" = [
+          "pyutils/concIO/index.md",
+          "pyutils/concIO/copy.md",
+          "pyutils/concIO/delete.md",
+          "pyutils/concIO/move.md",
+          "pyutils/concIO/read.md",
+          "pyutils/concIO/rename.md",
+          "pyutils/concIO/write.md",
+          "pyutils/concIO/zip.md",
+      ] },
+      { "Coroutine" = [
+          "pyutils/coroutine/index.md",
+          "pyutils/coroutine/generics.md",
+          "pyutils/coroutine/tools.md",
+      ] },
+      { "Generators" = [
+          "pyutils/generators/index.md",
+          "pyutils/generators/tools.md",
+      ] },
+      { "Loggers" = [
+          "pyutils/loggers/index.md",
+          "pyutils/loggers/generals.md",
+      ] },
   ] },
 ]
 
