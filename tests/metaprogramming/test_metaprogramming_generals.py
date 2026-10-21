@@ -7,12 +7,16 @@ from pyutils.descriptors.computed_properties import (
 )
 from pyutils.metaprogramming.generals import (
     Cached,
+    MultiMeta,
+    MultiMethod,
     NoInstances,
     OrderedMeta,
     PosArgsKwargsCls,
     PosArgsOnlyCls,
     Singleton,
     assert_func_types,
+    multimethod,
+    typed_property,
 )
 
 
@@ -174,3 +178,50 @@ def test_ordered_meta():
 
     with pytest.raises(TypeError):
         Stock("name", 100, "price")
+
+
+def test_multimethod_dispatch_and_typed_property() -> None:
+    class Example(metaclass=MultiMeta):
+        def add(self, x: int, y: int):
+            return x + y
+
+        def add(self, x: str, y: str):
+            return x + y
+
+    class Person:
+        name = typed_property("name", str)
+        age = typed_property("age", int)
+
+        def __init__(self, name, age):
+            self.name = name
+            self.age = age
+
+    example = Example()
+    assert example.add(2, 3) == 5
+    assert example.add("a", "b") == "ab"
+
+    person = Person("Ada", 36)
+    assert person.name == "Ada"
+    assert person.age == 36
+
+    with pytest.raises(TypeError):
+        person.age = "old"
+
+
+def test_multimethod_decorator_dispatch() -> None:
+    class Example:
+        @multimethod
+        def add(self, *args):
+            raise TypeError("No matching method")
+
+        @add.match(int, int)
+        def add(self, x, y):
+            return x + y
+
+        @add.match(str, str)
+        def add(self, x, y):
+            return x + y
+
+    example = Example()
+    assert example.add(3, 4) == 7
+    assert example.add("x", "y") == "xy"

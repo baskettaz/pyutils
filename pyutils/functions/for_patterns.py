@@ -74,7 +74,7 @@ def find_pattern(path: Path, pattern: Pattern[bytes]) -> Iterator[Any]:
         * avoids loading the entire file into string
         * lazy yield
     """
-    with open(path) as file:
+    with open(path, "rb") as file:
         with mmap.mmap(file.fileno(), length=0, access=mmap.ACCESS_READ) as mmap_obj:
             yield from pattern.finditer(mmap_obj)
 

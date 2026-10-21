@@ -82,7 +82,12 @@ select = [
 [tool.coverage.run]
 branch = true
 parallel = true
-source = ["src/", "tests/"]
+data_file = "docs/reports/.coverage"
+relative_files = true
+omit = ["tests/*"]
+
+[tool.coverage.html]
+directory = "docs/reports"
 
 [tool.coverage.report]
 show_missing = true

@@ -1,6 +1,7 @@
-from pyutils.functions.generals import parse_safe_nsplits
-
 import pytest
+
+from pyutils.functions.generals import is_generator, is_hashable, is_swappable, parse_safe_nsplits
+
 
 @pytest.mark.parametrize(
     "line,nsplits,sep,maxsplit,fillvalue,expected",
@@ -17,3 +18,17 @@ import pytest
 def test_parse_safe_nsplits(line, nsplits, sep, maxsplit, fillvalue, expected):
     result = list(parse_safe_nsplits(line, nsplits, sep, maxsplit, fillvalue))
     assert result == expected
+
+
+def test_hashable_and_generator_checks() -> None:
+    assert is_hashable("abc") is True
+    assert is_hashable([]) is False
+    assert is_generator((x for x in range(3))) is True
+    assert is_generator([1, 2, 3]) is False
+
+
+def test_is_swappable_requires_hashable_values() -> None:
+    assert is_swappable({"a": 1, "b": 2}) is True
+
+    with pytest.raises(TypeError):
+        is_swappable([])
