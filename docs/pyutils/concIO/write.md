@@ -1,0 +1,3 @@
+# Write
+
+::: pyutils.concIO.write

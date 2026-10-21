@@ -1,0 +1,3 @@
+# Generics
+
+::: pyutils.coroutine.generics

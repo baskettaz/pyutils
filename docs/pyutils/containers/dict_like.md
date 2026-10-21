@@ -1,3 +1,3 @@
-# Dict-like containers
+# Dict Like
 
 ::: pyutils.containers.dict_like

@@ -1,0 +1,3 @@
+# Generals
+
+::: pyutils.functions.generals

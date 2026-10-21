@@ -1,0 +1,3 @@
+# Perf
+
+::: pyutils.metaprogramming.perf

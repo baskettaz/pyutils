@@ -1,0 +1,3 @@
+# Perftemp
+
+::: pyutils.metaprogramming.perftemp
